@@ -19,27 +19,33 @@ export const SEGMENTOS = [
     id: 'norte', tribuna: 'norte', A: [-37, 61.5], B: [37, 61.5], base: 1.0,
     bandejas: [{ filas: 18, huella: 0.8, contra: 0.4 }],
     pasillos: [5, 16, 25, 41, 57, 65],
+    barandaAtras: true,
   },
   {
     id: 'esquina-ne', tribuna: 'norte', A: [37.6, 61.5], B: [43, 56.2], base: 1.0,
     bandejas: [{ filas: 13, huella: 0.8, contra: 0.4 }],
     pasillos: [],
+    barandaAtras: true,
   },
   {
     id: 'oriental', tribuna: 'oriental', A: [43, 56], B: [43, -50], base: 1.0,
     bandejas: [{ filas: 12, huella: 0.8, contra: 0.4 }],
-    pasillos: [10.3, 25.3, 40.3, 56, 71.7, 86, 100.3],
+    pasillos: [10.6, 21.2, 31.8, 42.4, 53, 63.6, 74.2, 84.8, 95.4],
+    // las sillas rojas que escriben IDRD en los 4 bloques del centro (foto IMG_9178)
+    letras: { real: 'IDRD', inter: 'INTER', desde: 32.4, hasta: 74.2 },
+    barandaAtras: true,
   },
   {
-    id: 'occidental-norte', tribuna: 'occidental-norte', A: [-52.5, 12], B: [-48, 66], base: 1.1,
+    id: 'occidental-norte', tribuna: 'occidental-norte', A: [-52.5, 12], B: [-48, 66], base: 1.8,
+    // fotos: 6–7 filas rojas abajo, pasillo, ~12 filas amarillas, palcos de vidrio y oficinas bajo el techo
     bandejas: [
       { filas: 7, huella: 0.8, contra: 0.38 },
-      { salto: 1.6, subida: 1.4, filas: 26, huella: 0.8, contra: 0.42 },
+      { salto: 1.6, subida: 1.2, filas: 13, huella: 0.85, contra: 0.45 },
     ],
     pasillos: [9, 18, 27, 36, 45],
     palco: { fondo: 6, alto: 3.2, cajas: 10 },
-    edificio: { fondo: 10 },
-    techo: { desde: 4, fondoExtra: 10, frente: 20.5, fondo: 22, color: 0xb9bcbd, cerchas: 9 },
+    edificio: { fondo: 17 },
+    techo: { tipo: 'concreto', desde: 2.5, frente: 15.2, fondo: 16.6, color: 0xdcd9d2, nervios: 3.2 },
   },
   {
     id: 'occidental-sur', tribuna: 'occidental-sur', A: [-47, -76], B: [-51.5, -9], base: 1.0,
@@ -49,7 +55,7 @@ export const SEGMENTOS = [
     ],
     pasillos: [7, 16, 25, 34, 43, 52, 61],
     edificio: { fondo: 5 },
-    techo: { desde: 9.4, fondoExtra: 6, frente: 17.5, fondo: 18.5, color: 0xe9ecec, cerchas: 7 },
+    techo: { tipo: 'lona', desde: 9.4, frente: 17, fondo: 17.5, color: 0xf4f4f1, vanos: 9 },
   },
 ];
 
@@ -61,14 +67,19 @@ export const TRIBUNAS = {
 };
 
 // Torres de luz (base medida en el satélite; las cabezas apuntan al centro).
+// La del noreste es la torre doble con pantalla (fotos IMG_9178 y video); las otras, un solo poste.
 export const TORRES = [
-  [-40, 74.3], [48.6, 68.6], [38.6, -55.7], [-38.6, -56.4],
+  { x: -40, y: 74.3, tipo: 'poste' }, { x: 48.6, y: 68.6, tipo: 'doble' },
+  { x: 38.6, y: -55.7, tipo: 'poste' }, { x: -38.6, y: -56.4, tipo: 'poste' },
 ];
 export const ALTO_TORRE = 35;
 
 // Bancos de suplentes, costado occidental.
+// Túneles curvos frente a la Occidental: blancos (patrocinio) y de policarbonato (bancos).
 export const BANCOS = [
-  { y: 10, largo: 10 }, { y: -11.5, largo: 10 },
+  { y: 21, largo: 5, tipo: 'blanco' }, { y: 15, largo: 3.5, tipo: 'claro' },
+  { y: 4.5, largo: 16, tipo: 'blanco' }, { y: -9, largo: 9, tipo: 'claro' },
+  { y: -21, largo: 9, tipo: 'claro' },
 ];
 
 // Volúmenes vecinos sencillos (anexo azul detrás de Occidental Sur).

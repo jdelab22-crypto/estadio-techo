@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
-  CANCHA, PASTO, FRANJA, SEGMENTOS, TRIBUNAS, TORRES, ALTO_TORRE, BANCOS, ANEXOS,
+  CANCHA, PASTO, FRANJA, SEGMENTOS, TRIBUNAS, TORRES, ALTO_TORRE, BANCOS, ANEXOS, GIRO_NORTE,
   SIN_ARBOLES, CAMARAS,
 } from './datos.js';
 
@@ -26,17 +26,17 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const escena = new THREE.Scene();
-const camara = new THREE.PerspectiveCamera(40, 1, 0.3, 4000);
+const camara = new THREE.PerspectiveCamera(40, 1, 0.3, 60000);
 const controles = new OrbitControls(camara, lienzo);
 controles.enableDamping = true;
 controles.dampingFactor = 0.08;
 controles.maxPolarAngle = Math.PI * 0.495;
 controles.minDistance = 4;
-controles.maxDistance = 900;
+controles.maxDistance = 1400;
 
 // Cielo y sol de media tarde, entrando desde el occidente (detrás de las tribunas techadas).
 const cielo = new Sky();
-cielo.scale.setScalar(3000);
+cielo.scale.setScalar(45000);
 const u = cielo.material.uniforms;
 u.turbidity.value = 6; u.rayleigh.value = 1.6; u.mieCoefficient.value = 0.004; u.mieDirectionalG.value = 0.8;
 const dirSol = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 24), THREE.MathUtils.degToRad(-115));
@@ -62,7 +62,7 @@ sol.shadow.bias = -0.0004;
 sol.shadow.normalBias = 0.04;
 escena.add(sol, sol.target);
 escena.add(new THREE.HemisphereLight(0xcfe3ff, 0x4a5a3a, 0.55));
-escena.fog = new THREE.Fog(0xc9d6e0, 450, 1500);
+escena.fog = new THREE.Fog(0xb9c8d6, 900, 26000);
 
 // ---------- materiales
 const M = {
@@ -75,6 +75,12 @@ const M = {
   blanco: new THREE.MeshStandardMaterial({ color: 0xf2f2ef, roughness: 0.6 }),
   sintetico: new THREE.MeshStandardMaterial({ color: 0x1c2a22, roughness: 0.95 }),
   baranda: new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.4, metalness: 0.7 }),
+  amarillo: new THREE.MeshStandardMaterial({ color: 0xe9bf1a, roughness: 0.45, metalness: 0.3 }),
+  malla: new THREE.MeshStandardMaterial({ color: 0x1d2420, roughness: 0.6, metalness: 0.4, transparent: true, opacity: 0.38, side: THREE.DoubleSide, depthWrite: false }),
+  lona: new THREE.MeshStandardMaterial({ color: 0xf4f4f1, roughness: 0.75, side: THREE.DoubleSide }),
+  concretoTecho: new THREE.MeshStandardMaterial({ color: 0xdcd9d2, roughness: 0.85 }),
+  pantalla: new THREE.MeshStandardMaterial({ color: 0x0c0d0f, roughness: 0.25, metalness: 0.2 }),
+  torre: new THREE.MeshStandardMaterial({ color: 0xd9dbd8, roughness: 0.5, metalness: 0.5 }),
 };
 
 // ---------- texturas dibujadas
@@ -158,7 +164,7 @@ suelo.rotation.x = -Math.PI / 2;
 suelo.receiveShadow = true;
 escena.add(suelo);
 // tierra más allá del satélite, para que no se vea el borde desde lejos
-const tierra = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x5f6655, roughness: 1 }));
+const tierra = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x77716a, roughness: 1 }));
 tierra.rotation.x = -Math.PI / 2; tierra.position.y = -1.5; escena.add(tierra);
 
 cargador.load('assets/suelo.jpg', (t) => {
@@ -247,20 +253,30 @@ arco(CANCHA.largo / 2); arco(-CANCHA.largo / 2);
     m.rotation.y = -Math.atan2(-(b.z - a.z), b.x - a.x);
     m.castShadow = true; escena.add(m);
   };
-  valla(P(38.5, -50), P(38.5, 50));
-  valla(P(-26, 56.5), P(26, 56.5)); valla(P(-26, -56.5), P(26, -56.5));
+  // en las fotos no hay vallas; quedan listas para la versión con marca del Inter
+  if (location.search.includes('vallas')) { valla(P(38.5, -50), P(38.5, 50)); valla(P(-26, 56.5), P(26, 56.5)); }
 }
 
-// bancos de suplentes
-for (const b of BANCOS) {
-  const g = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.4, b.largo), M.concretoOscuro); base.position.y = 0.2;
-  const techo = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, b.largo + 0.2), new THREE.MeshPhysicalMaterial({ color: 0xcfe0ea, transparent: true, opacity: 0.45, roughness: 0.1 }));
-  techo.position.set(0.2, 2.3, 0);
-  const fondo = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.2, b.largo), M.blanco); fondo.position.set(-1.1, 1.1, 0);
-  const banca = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.45, b.largo - 0.6), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5 })); banca.position.set(-0.6, 0.62, 0);
-  g.add(base, techo, fondo, banca); g.traverse(o => (o.castShadow = true));
-  g.position.copy(P(-41.5, b.y)); escena.add(g);
+// bancos y túneles curvos frente a la Occidental (fotos IMG_9178, IMG_9180)
+{
+  const claro = new THREE.MeshPhysicalMaterial({ color: 0xe3ebe8, roughness: 0.15, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false });
+  const blanco = new THREE.MeshStandardMaterial({ color: 0xf6f6f4, roughness: 0.5, side: THREE.DoubleSide });
+  const sillaBanco = new THREE.MeshStandardMaterial({ color: 0xf0c419, roughness: 0.45 });
+  for (const b of BANCOS) {
+    const g = new THREE.Group();
+    const casco = new THREE.CylinderGeometry(1.3, 1.3, b.largo, 28, 1, true, Math.PI * 0.72, Math.PI * 0.78);
+    casco.rotateX(Math.PI / 2); casco.scale(1, 1.55, 1);
+    const m = new THREE.Mesh(casco, b.tipo === 'blanco' ? blanco : claro); m.castShadow = b.tipo === 'blanco'; g.add(m);
+    const piso = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.1, b.largo), M.sintetico); piso.position.y = 0.05; g.add(piso);
+    if (b.tipo === 'claro') {
+      const n = Math.floor(b.largo / 0.55);
+      const filaSillas = new THREE.InstancedMesh(new THREE.BoxGeometry(0.45, 0.5, 0.45), sillaBanco, n);
+      const mm = new THREE.Matrix4();
+      for (let i = 0; i < n; i++) { mm.makeTranslation(-0.6, 0.5, -b.largo / 2 + 0.3 + i * 0.55); filaSillas.setMatrixAt(i, mm); }
+      g.add(filaSillas);
+    }
+    g.position.copy(P(-41.6, b.y)); escena.add(g);
+  }
 }
 
 // ---------- tribunas
@@ -272,7 +288,7 @@ const silla = (() => {
 })();
 
 const sillas = []; // {seg, tribuna, bandeja, bloque, fila, numero, pos, normal}
-const piezasConcreto = [], piezasEscalera = [], piezasBaranda = [];
+const piezasConcreto = [], piezasEscalera = [], piezasBaranda = [], piezasAmarillo = [], piezasMalla = [], piezasTecho = [];
 
 function marco(seg) {
   const A = new THREE.Vector2(...seg.A), B = new THREE.Vector2(...seg.B);
@@ -293,7 +309,7 @@ function perfil(seg) {
     if (b.subida) { h += b.subida; }
     for (let i = 0; i < b.filas; i++) { h += b.contra; filas.push({ d, h, huella: b.huella, bandeja: ib, fila: i + 1 }); d += b.huella; }
   });
-  return { filas, fondo: d, alto: h };
+  return { filas, fondo: d, alto: h, atras: d + 2.25 };
 }
 
 function extruirPerfil(seg, mf, pf, s0, s1, mat, lista) {
@@ -305,8 +321,9 @@ function extruirPerfil(seg, mf, pf, s0, s1, mat, lista) {
     forma.lineTo(f.d, f.h); forma.lineTo(f.d + f.huella, f.h);
     dPrev = f.d + f.huella; hPrev = f.h;
   }
-  forma.lineTo(pf.fondo + 0.3, pf.alto + 1.1);
-  forma.lineTo(pf.fondo + 0.3, 0);
+  // pasillo de remate de 2 m y muro bajo al fondo (la baranda amarilla va encima)
+  forma.lineTo(pf.fondo + 2, pf.alto); forma.lineTo(pf.fondo + 2, pf.alto + 0.35);
+  forma.lineTo(pf.atras, pf.alto + 0.35); forma.lineTo(pf.atras, 0);
   forma.lineTo(0, 0);
   const geo = new THREE.ExtrudeGeometry(forma, { depth: s1 - s0, bevelEnabled: false, curveSegments: 1 });
   // ejes: forma.x → n, forma.y → arriba, extrusión → u
@@ -325,6 +342,11 @@ function caja(lista, centro, tam, quat) {
   lista.push(g);
 }
 
+function baranda(mf, q, d, h, L) {
+  for (const k of [0.5, 1.05]) caja(piezasAmarillo, mf.enMundo(L / 2, d, h + k), new THREE.Vector3(L, 0.07, 0.07), q);
+  for (let s = 0; s <= L + 0.01; s += 1.8) caja(piezasAmarillo, mf.enMundo(Math.min(s, L), d, h + 0.55), new THREE.Vector3(0.06, 1.1, 0.06), q);
+}
+
 function construirSegmento(seg) {
   const mf = marco(seg), pf = perfil(seg);
   extruirPerfil(seg, mf, pf, 0, mf.L, M.concreto, piezasConcreto);
@@ -333,12 +355,16 @@ function construirSegmento(seg) {
   const qSeg = new THREE.Quaternion().setFromRotationMatrix(base.determinant() > 0 ? base : new THREE.Matrix4().makeBasis(mf.u3.clone().negate(), ARRIBA, mf.n3));
 
   // escaleras pintadas en cada pasillo
-  const anchoPasillo = 1.2;
+  const anchoPasillo = 1.4;
   for (const p of seg.pasillos) {
     for (const f of pf.filas) {
-      caja(piezasEscalera, mf.enMundo(p, f.d + f.huella / 2, f.h + 0.012), new THREE.Vector3(anchoPasillo, 0.025, f.huella), qSeg);
-      // contrahuella intermedia de la escalera (dos peldaños por fila)
-      caja(piezasEscalera, mf.enMundo(p, f.d + f.huella / 2, f.h + 0.012 + 0.2), new THREE.Vector3(anchoPasillo * 0.98, 0.02, f.huella / 2), qSeg);
+      // dos peldaños por fila, pintados en huella y contrahuella (desde la cancha se ven las franjas amarillas)
+      const c = (pf.filas[pf.filas.indexOf(f) - 1]?.h ?? seg.base);
+      const r = f.h - c;
+      // peldaño intermedio, apoyado en la huella de la fila anterior
+      caja(piezasEscalera, mf.enMundo(p, f.d - f.huella / 4, c + r / 4), new THREE.Vector3(anchoPasillo, r / 2, f.huella / 2), qSeg);
+      // pintura sobre la huella y la mitad alta de la contrahuella
+      caja(piezasEscalera, mf.enMundo(p, f.d + f.huella / 2 - 0.01, f.h - r / 4 + 0.01), new THREE.Vector3(anchoPasillo, r / 2 + 0.02, f.huella + 0.02), qSeg);
     }
     // baranda central del pasillo
     const f0 = pf.filas[0], f1 = pf.filas[pf.filas.length - 1];
@@ -347,8 +373,13 @@ function construirSegmento(seg) {
     g.applyMatrix4(new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(ARRIBA, v.normalize()), new THREE.Vector3(1, 1, 1)));
     piezasBaranda.push(g);
   }
-  // baranda del frente
-  caja(piezasBaranda, mf.enMundo(mf.L / 2, -0.15, seg.base + 0.55), new THREE.Vector3(mf.L, 1.1, 0.06), qSeg);
+  // frente: malla oscura en las tribunas abiertas, baranda amarilla en las techadas (como en las fotos)
+  if (seg.techo) baranda(mf, qSeg, -0.1, seg.base, mf.L);
+  else {
+    caja(piezasMalla, mf.enMundo(mf.L / 2, -0.25, seg.base + 1.25), new THREE.Vector3(mf.L, 2.5, 0.02), qSeg);
+    for (let s = 0; s <= mf.L; s += 3) caja(piezasBaranda, mf.enMundo(s, -0.25, seg.base + 1.25), new THREE.Vector3(0.08, 2.5, 0.08), qSeg);
+  }
+  if (seg.barandaAtras) baranda(mf, qSeg, pf.atras - 0.15, pf.alto + 0.35, mf.L);
 
   // sillas: bloques entre pasillos
   const cortes = [0, ...seg.pasillos.map(p => [p - anchoPasillo / 2, p + anchoPasillo / 2]).flat(), mf.L];
@@ -361,6 +392,7 @@ function construirSegmento(seg) {
         const s = s0 + sobra / 2 + 0.25 + k * 0.5;
         sillas.push({
           seg: seg.id, tribuna: seg.tribuna, bandeja: f.bandeja, bloque: ib + 1, fila: f.fila, numero: k + 1,
+          s, filaSeg: pf.filas.indexOf(f), filasSeg: pf.filas.length, L: mf.L,
           pos: mf.enMundo(s, f.d + f.huella * 0.42, f.h), q: qSeg,
         });
       }
@@ -368,7 +400,7 @@ function construirSegmento(seg) {
   }
 
   // edificio detrás + palcos + techo
-  let dAtras = pf.fondo + 0.3;
+  let dAtras = pf.atras;
   if (seg.edificio) {
     const fondo = seg.edificio.fondo;
     caja(piezasConcreto, mf.enMundo(mf.L / 2, dAtras + fondo / 2, pf.alto / 2 + 0.55), new THREE.Vector3(mf.L, pf.alto + 1.1, fondo), qSeg);
@@ -390,33 +422,50 @@ function construirSegmento(seg) {
     palcoInfo = { mf, dAtras, h0, alto, cajas, L: mf.L };
   }
   if (seg.techo) {
-    const t = seg.techo, d0 = t.desde, d1 = pf.fondo + (seg.edificio ? seg.edificio.fondo : 0) + 0.3;
+    const t = seg.techo, d0 = t.desde, d1 = pf.atras + (seg.edificio ? seg.edificio.fondo : 0);
     const prof = d1 - d0, largo = mf.L + 2;
-    const lamina = texturaLamina(t.color); lamina.repeat.set(largo / 0.9 / 4, 1);
-    const pendiente = Math.atan2(t.fondo - t.frente, prof);
-    const g = new THREE.PlaneGeometry(largo, Math.hypot(prof, t.fondo - t.frente));
-    // el plano: X a lo largo, Y hacia atrás-arriba
-    const mat = new THREE.MeshStandardMaterial({ map: lamina, roughness: 0.55, metalness: 0.35, side: THREE.DoubleSide });
-    const techo = new THREE.Mesh(g, mat);
-    const centro = mf.enMundo(mf.L / 2, (d0 + d1) / 2, (t.frente + t.fondo) / 2);
-    techo.position.copy(centro);
-    techo.quaternion.copy(qSeg).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2 - pendiente));
-    techo.castShadow = techo.receiveShadow = true;
-    escena.add(techo);
-    // cerchas blancas por encima de la lámina (así se ven en el satélite) y columnas atrás
-    for (let i = 0; i < t.cerchas; i++) {
-      const s = -1 + largo * (i + 0.5) / t.cerchas;
-      const a = mf.enMundo(s, d0 - 0.2, t.frente + 0.55), b = mf.enMundo(s, d1, t.fondo + 0.55);
-      const v = b.clone().sub(a);
-      const viga = new THREE.BoxGeometry(0.35, 1.0, v.length());
-      viga.applyMatrix4(new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), v.clone().normalize()), new THREE.Vector3(1, 1, 1)));
-      piezasBaranda.push(viga);
-      caja(piezasBaranda, mf.enMundo(s, d1 - 0.4, t.fondo / 2), new THREE.Vector3(0.5, t.fondo, 0.5), qSeg);
+    const pendiente = Math.atan2(t.fondo - t.frente, prof), largoCaida = Math.hypot(prof, t.fondo - t.frente);
+    const qTecho = qSeg.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -pendiente));
+    const enTecho = (geo, s, dLocal, abajo) => {
+      // dLocal: 0 = frente del techo; abajo: metros bajo la cara de la losa
+      geo.translate(0, -abajo, dLocal - largoCaida / 2);
+      geo.applyMatrix4(new THREE.Matrix4().compose(mf.enMundo(s, (d0 + d1) / 2, (t.frente + t.fondo) / 2), qTecho, new THREE.Vector3(1, 1, 1)));
+      return geo;
+    };
+    if (t.tipo === 'concreto') {
+      // losa en voladizo con nervios por debajo y un canto grueso al frente (fotos IMG_9176 y video)
+      piezasTecho.push(enTecho(new THREE.BoxGeometry(largo, 0.4, largoCaida), mf.L / 2, largoCaida / 2, 0));
+      for (let s = -1 + t.nervios / 2; s < mf.L + 1; s += t.nervios) {
+        piezasTecho.push(enTecho(new THREE.BoxGeometry(0.28, 0.85, largoCaida - 0.4), s, largoCaida / 2 + 0.2, 0.6));
+      }
+      piezasTecho.push(enTecho(new THREE.BoxGeometry(largo, 1.15, 0.45), mf.L / 2, 0.22, 0.38));
+      for (let s = 0; s <= mf.L; s += t.nervios * 2) caja(piezasConcreto, mf.enMundo(s, d1 - 0.5, t.fondo / 2), new THREE.Vector3(0.6, t.fondo, 0.6), qSeg);
+    } else {
+      // lona blanca tensada en vanos, festoneada al frente, con mástiles atrás (video, cuadro 2)
+      const vanos = t.vanos, nx = 10, nd = 12, pos = [], idx = [];
+      for (let v = 0; v < vanos; v++) {
+        const sA = -1 + largo * v / vanos, sB = -1 + largo * (v + 1) / vanos, base = pos.length / 3;
+        for (let j = 0; j <= nd; j++) for (let i = 0; i <= nx; i++) {
+          const a = i / nx, dn = j / nd, sv = sA + (sB - sA) * a, dd = d0 + prof * dn;
+          const comba = Math.sin(Math.PI * a) * (1.5 * (1 - dn) + 0.35);
+          const p = mf.enMundo(sv, dd, t.frente + (t.fondo - t.frente) * dn - comba + Math.sin(Math.PI * dn) * 0.6);
+          pos.push(p.x, p.y, p.z);
+        }
+        for (let j = 0; j < nd; j++) for (let i = 0; i < nx; i++) {
+          const k = base + j * (nx + 1) + i; idx.push(k, k + 1, k + nx + 1, k + 1, k + nx + 2, k + nx + 1);
+        }
+        const m0 = mf.enMundo(sA, d1 - 0.4, 0), mt = mf.enMundo(sA, d1 - 0.4, t.fondo + 4);
+        const mastil = new THREE.CylinderGeometry(0.22, 0.3, t.fondo + 4, 8); mastil.translate(m0.x, (t.fondo + 4) / 2, m0.z); piezasBaranda.push(mastil);
+        const f = mf.enMundo(sA, d0, t.frente + 0.3), v3 = f.clone().sub(mt);
+        const cable = new THREE.CylinderGeometry(0.03, 0.03, v3.length(), 4);
+        cable.applyMatrix4(new THREE.Matrix4().compose(mt.clone().add(f).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(ARRIBA, v3.normalize()), new THREE.Vector3(1, 1, 1)));
+        piezasBaranda.push(cable);
+      }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+      const lona = new THREE.Mesh(g, M.lona); lona.castShadow = lona.receiveShadow = true; escena.add(lona);
     }
     // muro trasero: cierra la tribuna desde el piso hasta la lámina
     caja(piezasConcreto, mf.enMundo(mf.L / 2, d1 + 0.15, t.fondo / 2), new THREE.Vector3(mf.L, t.fondo, 0.3), qSeg);
-    // canal frontal del techo
-    caja(piezasBaranda, mf.enMundo(mf.L / 2, d0 - 0.2, t.frente - 0.1), new THREE.Vector3(largo, 0.6, 0.3), qSeg);
   }
   return { mf, pf };
 }
@@ -432,6 +481,9 @@ function unir(lista, mat, sombra = true) {
 unir(piezasConcreto, M.concreto);
 unir(piezasEscalera, M.escalera, false);
 unir(piezasBaranda, M.acero);
+unir(piezasAmarillo, M.amarillo);
+unir(piezasMalla, M.malla, false);
+unir(piezasTecho, M.concretoTecho);
 
 // anexos
 for (const a of ANEXOS) {
@@ -442,11 +494,29 @@ for (const a of ANEXOS) {
 // ---------- sillas en un solo InstancedMesh
 const COLORES = {
   real: {
-    'norte': ['#e3d6a6', '#d9c98f'], 'oriental': ['#e9c217', '#dfb513'],
-    'occidental-norte': ['#e7c01b', '#d8b011'], 'occidental-sur': ['#ecc41c', '#ddb515'],
+    'norte': ['#d8cba6', '#cdbf99'], 'oriental': ['#d8cba6', '#cdbf99'],
+    'occidental-norte': [['#d9606a', '#e07a83'], ['#e8c11c', '#dcb415']], 'occidental-sur': ['#ecc41c', '#ddb515'],
+    letra: ['#b3413b', '#a63a33'],
   },
-  inter: { todos: ['#141414', '#1d1d1d'], acento: '#f1f0ec' },
+  inter: { todos: ['#141414', '#1d1d1d'], acento: '#f1f0ec', letra: ['#f1f0ec', '#e8e6df'] },
 };
+// máscara de letras dibujada en un lienzo: una celda por silla (0,5 m) y por fila
+const mascaras = {};
+function mascara(seg, texto, filas) {
+  const k = seg.id + texto; if (mascaras[k]) return mascaras[k];
+  const L = Math.hypot(seg.B[0] - seg.A[0], seg.B[1] - seg.A[1]);
+  const W = Math.ceil(L / 0.5), H = filas, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = esquema === 'inter' ? `700 ${H * 1.25}px Owners, "Arial Narrow", sans-serif` : `700 ${H * 0.95}px Georgia, "Times New Roman", serif`;
+  const x0 = seg.letras.desde / 0.5, x1 = seg.letras.hasta / 0.5, ancho = g.measureText(texto).width;
+  // letras separadas y estiradas a lo ancho de los bloques del centro
+  const paso = (x1 - x0) / texto.length;
+  [...texto].forEach((l, i) => {
+    g.save(); g.translate(x0 + paso * (i + 0.5), H * 0.5); g.scale(Math.min(1.6, (paso * 0.8) / (ancho / texto.length)), 1); g.fillText(l, 0, 0); g.restore();
+  });
+  const d = g.getImageData(0, 0, W, H).data;
+  return (mascaras[k] = (s, fila) => { const x = Math.floor(s / 0.5), y = H - 1 - fila; return d[(y * W + x) * 4 + 3] > 110; });
+}
 const matSilla = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.38, metalness: 0.05 });
 const malla = new THREE.InstancedMesh(silla, matSilla, sillas.length);
 malla.castShadow = true; malla.receiveShadow = true;
@@ -461,8 +531,12 @@ let esquema = 'real';
 function pintarSillas() {
   const c = new THREE.Color();
   sillas.forEach((s, i) => {
-    if (esquema === 'real') {
-      const p = COLORES.real[s.tribuna]; c.set(azar() < 0.5 ? p[0] : p[1]);
+    const seg = SEGMENTOS.find(x => x.id === s.seg);
+    const enLetra = seg.letras && mascara(seg, seg.letras[esquema], s.filasSeg)(s.s, s.filaSeg);
+    if (enLetra) { const p = COLORES[esquema].letra; c.set(azar() < 0.5 ? p[0] : p[1]); }
+    else if (esquema === 'real') {
+      let p = COLORES.real[s.tribuna]; if (Array.isArray(p[0])) p = p[Math.min(s.bandeja, p.length - 1)];
+      c.set(azar() < 0.5 ? p[0] : p[1]);
     } else {
       // negro con blancos sueltos, como el rojo con azules del ejemplo
       c.set(azar() < 0.07 ? COLORES.inter.acento : (azar() < 0.5 ? COLORES.inter.todos[0] : COLORES.inter.todos[1]));
@@ -471,24 +545,83 @@ function pintarSillas() {
   });
   malla.instanceColor.needsUpdate = true;
   M.escalera.color.set(esquema === 'real' ? 0xe7c321 : 0xd9d6cf);
+  M.amarillo.color.set(esquema === 'real' ? 0xe9bf1a : 0x1a1a1a);
 }
 pintarSillas();
 
 // ---------- torres de luz
-for (const [x, y] of TORRES) {
-  const g = new THREE.Group();
-  const fuste = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.75, ALTO_TORRE, 12), M.aceroOscuro);
-  fuste.position.y = ALTO_TORRE / 2; fuste.castShadow = true; g.add(fuste);
+function cabezaLuces(ancho, alto, filas, cols) {
   const cabeza = new THREE.Group();
-  const marcoLuces = new THREE.Mesh(new THREE.BoxGeometry(7, 4.2, 0.4), M.aceroOscuro); cabeza.add(marcoLuces);
-  const focos = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.28, 0.32, 0.4, 10).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff3d6, emissiveIntensity: 0.35, roughness: 0.2 }), 24);
+  const marco = new THREE.Mesh(new THREE.BoxGeometry(ancho, alto, 0.35), M.torre); cabeza.add(marco);
+  const focos = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.26, 0.3, 0.45, 10).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff3d6, emissiveIntensity: 0.3, roughness: 0.2 }), filas * cols);
   const m = new THREE.Matrix4(); let k = 0;
-  for (let i = 0; i < 6; i++) for (let j = 0; j < 4; j++) { m.makeTranslation(-2.75 + i * 1.1, -1.5 + j * 1.0, 0.35); focos.setMatrixAt(k++, m); }
-  cabeza.add(focos);
-  cabeza.position.y = ALTO_TORRE + 1.5;
-  const hacia = P(0, 0, 0).sub(P(x, y, 0)); cabeza.rotation.y = Math.atan2(hacia.x, hacia.z); cabeza.rotation.x = 0; cabeza.rotateX(0.5);
-  cabeza.traverse(o => (o.castShadow = true));
-  g.add(cabeza); g.position.copy(P(x, y, 0)); escena.add(g);
+  for (let i = 0; i < cols; i++) for (let j = 0; j < filas; j++) { m.makeTranslation(-ancho / 2 + ancho * (i + 0.5) / cols, -alto / 2 + alto * (j + 0.5) / filas, 0.35); focos.setMatrixAt(k++, m); }
+  cabeza.add(focos); cabeza.traverse(o => (o.castShadow = true));
+  return cabeza;
+}
+for (const t of TORRES) {
+  const g = new THREE.Group();
+  if (t.tipo === 'doble') {
+    // torre doble de la esquina noreste: dos columnas, plataforma, pantalla abajo y luces arriba
+    const H = 40;
+    for (const x of [-3.4, 3.4]) {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, H, 12), M.torre); col.position.set(x, H / 2, 0); col.castShadow = true; g.add(col);
+    }
+    for (const [h, alto] of [[5.6, 0.4], [12, 0.4], [24, 0.35], [H - 4.6, 0.4]]) {
+      const v = new THREE.Mesh(new THREE.BoxGeometry(7.6, alto, 0.5), M.torre); v.position.y = h; v.castShadow = true; g.add(v);
+    }
+    const plataforma = new THREE.Mesh(new THREE.BoxGeometry(9.5, 0.2, 2.2), M.aceroOscuro); plataforma.position.set(0, 24, 0.6); g.add(plataforma);
+    const pantalla = new THREE.Mesh(new THREE.BoxGeometry(9.6, 5.8, 0.6), M.pantalla); pantalla.position.set(0, 8.8, 0.7); pantalla.castShadow = true; g.add(pantalla);
+    const cab = cabezaLuces(9, 5.2, 4, 7); cab.position.set(0, H - 1.4, 0.3); cab.rotation.x = -0.28; g.add(cab);
+  } else {
+    const fuste = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.6, ALTO_TORRE, 12), M.torre);
+    fuste.position.y = ALTO_TORRE / 2; fuste.castShadow = true; g.add(fuste);
+    const cab = cabezaLuces(5.4, 4.2, 4, 5); cab.position.set(0, ALTO_TORRE + 1.6, 0.4); cab.rotation.x = -0.32; g.add(cab);
+  }
+  const hacia = P(0, 0, 0).sub(P(t.x, t.y, 0)); g.rotation.y = Math.atan2(hacia.x, hacia.z);
+  g.position.copy(P(t.x, t.y, 0)); escena.add(g);
+}
+
+// ---------- cerros orientales y ciudad alrededor
+{
+  // dirección del oriente geográfico en coordenadas locales (la cancha está girada 19,3°)
+  const giro = THREE.MathUtils.degToRad(19.3);
+  const este = new THREE.Vector2(Math.cos(giro), Math.sin(giro)), norte = new THREE.Vector2(-Math.sin(giro), Math.cos(giro));
+  const pos = [], idx = [], N = 220, perfiles = [0, 0.55, 1, 0.75, 0];
+  const dist = [8200, 9800, 11200, 12600, 15500];
+  const cresta = (t) => 760 + 260 * Math.sin(t * 7.1) + 140 * Math.sin(t * 17.3 + 1) + 70 * Math.sin(t * 41 + 2) + 35 * Math.sin(t * 97);
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, a = -26000 + 52000 * t;
+    for (let j = 0; j < dist.length; j++) {
+      const p = este.clone().multiplyScalar(dist[j] + 400 * Math.sin(t * 9)).add(norte.clone().multiplyScalar(a));
+      const v = P(p.x, p.y, perfiles[j] * cresta(t * 6) * (j === 2 ? 1 : 0.92));
+      pos.push(v.x, v.y, v.z);
+    }
+  }
+  for (let i = 0; i < N; i++) for (let j = 0; j < dist.length - 1; j++) {
+    const k = i * dist.length + j; idx.push(k, k + dist.length, k + 1, k + 1, k + dist.length, k + dist.length + 1);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  escena.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x3e5240, roughness: 1, flatShading: true, side: THREE.DoubleSide })));
+
+  // barrios de Kennedy: bloques bajos de ladrillo y algunas torres, fuera del cuadro satelital
+  const casas = [], paso = 24;
+  for (let x = -2600; x <= 2600; x += paso) for (let y = -2600; y <= 2600; y += paso) {
+    if (Math.abs(x) < 262 && Math.abs(y) < 262) continue;
+    if (((x / paso) | 0) % 6 === 0 || ((y / paso) | 0) % 7 === 0) continue; // avenidas
+    if (azar() < 0.12) continue;
+    casas.push([x + (azar() - 0.5) * 6, y + (azar() - 0.5) * 6]);
+  }
+  const caja1 = new THREE.BoxGeometry(1, 1, 1); caja1.translate(0, 0.5, 0);
+  const malla = new THREE.InstancedMesh(caja1, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 }), casas.length);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion().setFromAxisAngle(ARRIBA, (azar() - 0.5) * 0.1), sc = new THREE.Vector3(), col = new THREE.Color();
+  const tonos = ['#8f5440', '#9c6149', '#a8705a', '#c9bda8', '#b9b2a6', '#7e4a3a', '#d4cfc4'];
+  casas.forEach(([x, y], i) => {
+    const torre = azar() < 0.035, alto = torre ? 26 + azar() * 22 : 6 + azar() * 7;
+    sc.set(14 + azar() * 6, alto, 14 + azar() * 6); m.compose(P(x, y, 0), q, sc); malla.setMatrixAt(i, m);
+    col.set(tonos[(azar() * tonos.length) | 0]); malla.setColorAt(i, col);
+  });
+  malla.receiveShadow = true; escena.add(malla);
 }
 
 // ---------- cámaras con vuelo suave
@@ -609,5 +742,17 @@ const h = location.hash.slice(1);
 if (h.startsWith('silla-')) { ir('general', true); sentarse(+h.slice(6)); }
 else ir(CAMARAS[h] ? h : 'general', true);
 
+// guardar una toma en alta (servidor local: herramientas/servidor.py la escribe en tomas/)
+async function guardar(nombre, w = 2400, h = 1350) {
+  const pw = lienzo.style.width, ph = lienzo.style.height, pr = renderer.getPixelRatio();
+  const aspecto = camara.aspect; vuelo = null; controles.update();
+  renderer.setPixelRatio(1); renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix();
+  document.body.classList.add('limpio'); render();
+  const blob = await new Promise(r => lienzo.toBlob(r, 'image/png'));
+  renderer.setPixelRatio(pr); ajustar(); camara.aspect = aspecto; ajustar(); document.body.classList.remove('limpio');
+  const res = await fetch('/guardar?nombre=' + encodeURIComponent(nombre), { method: 'POST', body: blob });
+  return res.status;
+}
+
 // para inspeccionar desde la consola o con Playwright
-window.techo = { THREE, escena, camara, controles, sillas, ir, sentarse, estado, render };
+window.techo = { THREE, escena, camara, controles, sillas, ir, sentarse, estado, render, guardar, volar: (p, m, f) => volar(P(...p), P(...m), f, true) };
