@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metropolitano de Techo 3D</title>
+<meta name="description" content="El Estadio Metropolitano de Techo en 3D, calcado del satélite: tribunas, techos y cada silla con su bloque, fila y número.">
+<link rel="icon" href="assets/img/escudo.png">
+<link rel="stylesheet" href="assets/estilos.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="lienzo" aria-label="Estadio Metropolitano de Techo en 3D. Arrastra para girar, rueda para acercar, clic en una silla para ver desde ahí."></canvas>
+
+<header class="cabecera">
+  <img src="assets/img/escudo.png" alt="" width="40" height="40">
+  <div>
+    <p class="ante">01 — El estadio en código</p>
+    <h1>Metropolitano de Techo</h1>
+  </div>
+</header>
+
+<aside class="panel" aria-label="Datos del modelo">
+  <p class="micro">Sillas en el modelo</p>
+  <p class="cifra" id="n-sillas">—</p>
+  <dl class="tribunas">
+    <div><dt>Occidental Norte <span>techo</span></dt><dd data-cuenta="occidental-norte">—</dd></div>
+    <div><dt>Occidental Sur <span>techo</span></dt><dd data-cuenta="occidental-sur">—</dd></div>
+    <div><dt>Norte</dt><dd data-cuenta="norte">—</dd></div>
+    <div><dt>Oriental</dt><dd data-cuenta="oriental">—</dd></div>
+  </dl>
+  <p class="micro">Color de sillas</p>
+  <div class="grupo" role="group" aria-label="Color de sillas">
+    <button data-esquema="real" aria-pressed="true">Reales</button>
+    <button data-esquema="inter" aria-pressed="false">Inter</button>
+  </div>
+  <button id="foto" class="foto">Descargar cuadro</button>
+</aside>
+
+<nav class="camaras" aria-label="Cámaras">
+  <button data-cam="arriba">Desde arriba</button>
+  <button data-cam="general">General</button>
+  <button data-cam="occidental-norte">Occ. Norte</button>
+  <button data-cam="occidental-sur">Occ. Sur</button>
+  <button data-cam="norte">Norte</button>
+  <button data-cam="oriental">Oriental</button>
+</nav>
+
+<p class="aviso-silla" id="aviso-silla" hidden><span class="micro">Tu vista</span> <span id="silla-actual"></span></p>
+
+<div class="ficha" id="ficha" hidden>
+  <p class="micro" data-t></p>
+  <p class="ficha-b" data-b></p>
+  <p data-f></p>
+</div>
+
+<script type="module" src="assets/estadio.js"></script>
+</body>
+</html>

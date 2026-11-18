@@ -1,0 +1,56 @@
+@font-face { font-family: "Owners"; src: url(fonts/OwnersXXNarrow-Bold.woff2) format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Owners"; src: url(fonts/OwnersXXNarrow-Medium.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Hanken Grotesk"; src: url(fonts/HankenGrotesk-latin.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+
+:root {
+  --negro: #000; --blanco: #fff; --dorado: #e9cea9; --tinta: #151515; --linea: #2a2a2a; --meta: #9a9a9a;
+  --naranja: #ff7a1a;
+  --out: cubic-bezier(0, 0, .2, 1);
+  --display: "Owners", "Arial Narrow", sans-serif;
+  --texto: "Hanken Grotesk", system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; background: #0b0d10; color: var(--blanco); font: 400 15px/1.4 var(--texto); overflow: hidden; }
+#lienzo { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+.micro { font-size: .6875rem; letter-spacing: .16em; text-transform: uppercase; color: var(--meta); font-weight: 600; }
+.ante { font-size: .6875rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dorado); font-weight: 600; }
+
+.cabecera { position: fixed; top: 20px; left: 20px; display: flex; gap: 14px; align-items: center; padding: 12px 18px 12px 14px; background: rgba(0,0,0,.82); pointer-events: none; }
+.cabecera h1 { font: 700 2rem/.88 var(--display); text-transform: uppercase; letter-spacing: -.01em; margin-top: 4px; }
+
+.panel { position: fixed; top: 20px; right: 20px; width: 236px; padding: 18px; background: rgba(0,0,0,.82); display: grid; gap: 10px; }
+.cifra { font: 700 3.4rem/.88 var(--display); }
+.tribunas { display: grid; gap: 6px; padding: 8px 0 6px; border-top: 1px solid var(--linea); border-bottom: 1px solid var(--linea); }
+.tribunas div { display: flex; justify-content: space-between; gap: 8px; font-size: .875rem; }
+.tribunas dt span { font-size: .625rem; letter-spacing: .14em; text-transform: uppercase; color: var(--meta); margin-left: 4px; }
+.tribunas dd { font-variant-numeric: tabular-nums; }
+
+button { font: 600 .75rem/1 var(--texto); letter-spacing: .12em; text-transform: uppercase; color: var(--blanco); background: transparent; border: 1px solid var(--linea); padding: 11px 14px; border-radius: 0; cursor: pointer; transition: background-color 120ms var(--out), color 120ms var(--out), border-color 120ms var(--out); }
+@media (hover: hover) { button:hover { border-color: var(--blanco); } }
+button[aria-pressed="true"] { background: var(--blanco); color: var(--negro); border-color: var(--blanco); }
+button:focus-visible { outline: 3px solid var(--dorado); outline-offset: 2px; }
+.grupo { display: grid; grid-template-columns: 1fr 1fr; }
+.foto { border-color: var(--dorado); }
+
+.camaras { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; background: rgba(0,0,0,.82); padding: 6px; gap: 4px; max-width: calc(100vw - 32px); overflow-x: auto; }
+.camaras button { border-color: transparent; white-space: nowrap; }
+
+.aviso-silla { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); background: rgba(0,0,0,.82); padding: 10px 16px; font-size: .9rem; white-space: nowrap; }
+.aviso-silla .micro { color: var(--naranja); margin-right: 8px; }
+
+.ficha { position: fixed; top: 0; left: 0; pointer-events: none; background: #f7f5f0; color: var(--tinta); padding: 10px 14px; min-width: 170px; }
+.ficha .micro { color: #806128; }
+.ficha-b { font: 700 1.5rem/.95 var(--display); text-transform: uppercase; margin: 3px 0 2px; }
+.ficha p:last-child { font-size: .85rem; }
+
+@media (max-width: 720px) {
+  .cabecera { top: 12px; left: 12px; padding: 8px 12px 8px 10px; }
+  .cabecera img { width: 30px; height: 30px; }
+  .cabecera h1 { font-size: 1.5rem; }
+  .panel { top: auto; bottom: 76px; right: 12px; left: 12px; width: auto; grid-template-columns: auto 1fr; align-items: end; padding: 12px; }
+  .panel .tribunas, .panel .micro:first-child { display: none; }
+  .cifra { font-size: 2.2rem; }
+  .camaras { bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 1ms !important; } }
