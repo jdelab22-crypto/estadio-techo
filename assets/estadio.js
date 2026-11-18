@@ -481,9 +481,14 @@ function construirSegmento(seg) {
     // muro trasero: cierra la tribuna desde el piso hasta la lámina
     caja(piezasConcreto, mf.enMundo(mf.L / 2, d1 + 0.15, t.fondo / 2), new THREE.Vector3(mf.L, t.fondo, 0.3), qSeg);
   }
+  // huella de la tribuna (vista desde arriba): del frente hasta el fondo del techo o del graderío
+  const fondoHuella = seg.techo ? pf.atras + (seg.edificio ? seg.edificio.fondo : 0) : pf.atras;
+  const altoHuella = seg.techo ? seg.techo.fondo + 1.5 : pf.alto + 1.5;
+  huellas.push({ tribuna: seg.tribuna, puntos: [[-0.8, -0.6], [mf.L + 0.8, -0.6], [mf.L + 0.8, fondoHuella + 0.3], [-0.8, fondoHuella + 0.3]].map(([s2, d]) => mf.enMundo(s2, d, altoHuella)) });
   return { mf, pf };
 }
 
+const huellas = [];
 let palcoInfo = null;
 const estado = { sillas: 0, arboles: 0, palcos: 0 };
 SEGMENTOS.forEach(construirSegmento);
@@ -809,7 +814,16 @@ async function guardarMascara(nombre, { nivel = 'tribuna', tribuna = null, w = 1
   });
   const prev = { fondo: escena.background, niebla: escena.fog, tono: renderer.toneMapping, sombras: renderer.shadowMap.enabled };
   cielo.visible = false; escena.background = new THREE.Color(0x000000); escena.fog = null; renderer.toneMapping = THREE.NoToneMapping;
+  // desde arriba, cada tribuna se marca entera (con techo y lo de atrás) con su huella por encima de todo
+  const extras = [];
+  if (nivel === 'tribuna') for (const hu of huellas) {
+    const k = indice.get(hu.tribuna); if (k === undefined) continue;
+    const g = new THREE.BufferGeometry().setFromPoints(hu.puntos); g.setIndex([0, 1, 2, 0, 2, 3]);
+    const m2 = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: colorZona(k), side: THREE.DoubleSide }));
+    escena.add(m2); extras.push(m2);
+  }
   const blob = await capturar(w, h);
+  extras.forEach(o => { escena.remove(o); o.geometry.dispose(); o.material.dispose(); });
   guardado.forEach(([o, mat, vis]) => { o.material = mat; o.visible = vis; });
   cielo.visible = true; escena.background = prev.fondo; escena.fog = prev.niebla; renderer.toneMapping = prev.tono;
   const uno = new THREE.Vector3(1, 1, 1);
