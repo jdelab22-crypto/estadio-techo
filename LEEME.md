@@ -23,3 +23,12 @@ Norte (sin techo, 18 filas), Oriental (sin techo, 12 filas), Occidental Norte (b
 + alta de 26 bajo techo, palcos VIP arriba), Occidental Sur (baja de 12 filas descubierta + alta de 16
 bajo techo). En el sur no hay tribuna. Alturas y número de filas son estimados: falta confirmarlos con
 fotos desde adentro y el mapa de sillas de la boletería.
+
+## Paso 2: fotos con IA (Higgsfield)
+1. Tomas del 3D en alta: en la consola, `await techo.guardar('3d-nombre', 2400, 1350)` → `tomas/3d-nombre.png`
+   (lo escribe `herramientas/servidor.py`, que es el servidor de la vista previa).
+2. Modelo `gpt_image_2_6`, calidad `high`, `2k`, 16:9 (2,75 créditos c/u). Referencias: la toma 3D primero y,
+   si sirve, una foto real (`referencias/fotos/IMG_9178.jpg`) solo para materiales y color.
+3. Prompt: "Turn the first image, a 3D render, into an ultra-photorealistic … same camera, same framing,
+   same geometry … Change only materials and light, add nothing … Warm late afternoon … No CGI look, no people".
+Resultados en `fotos-ia/` (v1 del 18-nov: arriba, oriental, silla ON-203 fila 4 silla 10).
