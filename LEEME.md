@@ -19,10 +19,11 @@ En la consola: `techo.ir('norte')`, `techo.sentarse(i)`, `techo.sillas` (cada si
 
 ## Medidas (del satélite)
 Cancha girada 19,3° horario respecto al norte. Arcos en y = ±53 m. Tribunas:
-Norte (sin techo, 18 filas), Oriental (sin techo, 12 filas), Occidental Norte (bandeja baja de 7 filas
-+ alta de 26 bajo techo, palcos VIP arriba), Occidental Sur (baja de 12 filas descubierta + alta de 16
-bajo techo). En el sur no hay tribuna. Alturas y número de filas son estimados: falta confirmarlos con
-fotos desde adentro y el mapa de sillas de la boletería.
+Norte (sin techo, 18 filas), Oriental (sin techo, 12 filas, "IDRD" en sillas rojas), Occidental Norte
+(7 filas rojas + 13 amarillas bajo techo de concreto, palcos de vidrio y oficinas detrás), Occidental Sur
+(12 filas descubiertas + 16 bajo lona blanca). En el sur no hay tribuna. Torre doble con pantalla en la
+esquina noreste. Ajustado con las fotos de `referencias/fotos/` (30-jul); el número exacto de filas y
+sillas sigue siendo estimado hasta tener el mapa de la boletería.
 
 ## Paso 2: fotos con IA (Higgsfield)
 1. Tomas del 3D en alta: en la consola, `await techo.guardar('3d-nombre', 2400, 1350)` → `tomas/3d-nombre.png`
