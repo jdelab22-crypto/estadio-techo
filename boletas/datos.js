@@ -10,6 +10,7 @@ export const TRIBUNAS = {
     texto: 'Tribuna local con techo. Aquí están las sillas donde nuestra banda está presente. En esta tribuna también quedan el palco y la zona VIP.',
     vista: 'media/silla-occidental-norte.jpg', foto: 'media/tribuna-occidental-norte.jpg', mascara: 'final-occidental-norte',
     agotado: 0.62,
+    video: 'media/bajada-occidental-norte.mp4', giro: { grados: 180, escala: 1, ox: 0.5, oy: 0.5 },
   },
   'occidental-sur': {
     nombre: 'Occidental Sur', techo: true, puerta: 'Puerta 2',
@@ -17,6 +18,7 @@ export const TRIBUNAS = {
     texto: 'Nuestra segunda tribuna local, también con techo. Para vivir el partido del lado local sin preocuparse por el clima.',
     vista: 'media/silla-occidental-sur.jpg', foto: 'media/tribuna-occidental-sur.jpg', mascara: 'final-occidental-sur',
     agotado: 0.48,
+    video: 'media/bajada-occidental-sur.mp4', giro: { grados: 180, escala: 1, ox: 0.5, oy: 0.5 },
   },
   'norte': {
     nombre: 'Norte', techo: false, puerta: 'Puerta 5',
@@ -24,6 +26,8 @@ export const TRIBUNAS = {
     texto: 'Detrás del arco norte, a cielo abierto. La tribuna para vivir de cerca cada llegada al área. No tiene techo: en tarde de lluvia bogotana, trae chaqueta.',
     vista: 'media/silla-norte.jpg', foto: 'media/tribuna-norte.jpg', mascara: 'final-norte',
     agotado: 0.4,
+    // el video empieza en la vista general girada 90° y acercada (mismo cálculo que herramientas/girar.swift)
+    video: 'media/bajada-norte.mp4', giro: { grados: 90, escala: 1.95, ox: 0.47, oy: 0.5 },
   },
   'oriental': {
     nombre: 'Oriental', techo: false, puerta: 'Puerta 3',

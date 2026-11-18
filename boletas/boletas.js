@@ -192,13 +192,30 @@ async function irATribuna(id, { animar = true } = {}) {
   estado.ocupado = true; esc.classList.add('ocupado'); etiqueta.hidden = true; cerrarPanel(false);
   const listo = Promise.all([cargarImagen(t.foto), cargarVista(t.mascara)]);
   if (animar && !reduce && t.video) {
-    // la bajada real: el primer cuadro del video es la vista general y el último, la foto de la tribuna
-    video.src = t.video; video.hidden = false; video.currentTime = 0;
+    // la bajada real: el último cuadro del video es la foto de la tribuna. Si la tribuna no queda arriba en la
+    // vista general, primero se gira la foto cenital (girar una vista desde arriba es exacto) hasta el primer
+    // cuadro del video, que se hizo con ese mismo giro (herramientas/girar.swift).
+    video.src = t.video; video.load();
+    const primerCuadro = new Promise((ok) => { video.addEventListener('loadeddata', ok, { once: true }); video.addEventListener('error', ok, { once: true }); });
+    if (t.giro && desde) {
+      const { grados, escala, ox, oy } = t.giro;
+      cuadro.style.setProperty('--ox', ox * 100 + '%'); cuadro.style.setProperty('--oy', oy * 100 + '%');
+      // mientras gira, la foto se acerca lo justo para que nunca se vean esquinas vacías
+      const aspecto = esc.clientWidth / esc.clientHeight, pasos = 12, cuadros = [];
+      for (let k = 0; k <= pasos; k++) {
+        const t = k / pasos, a = (grados * t) * Math.PI / 180;
+        const cubrir = (Math.abs(Math.cos(a)) + aspecto * Math.abs(Math.sin(a))) * (1 + 0.12 * Math.sin(Math.PI * t));
+        cuadros.push({ transform: `rotate(${grados * t}deg) scale(${Math.max(1 + (escala - 1) * t, k === pasos ? escala : cubrir)})` });
+      }
+      await cuadro.animate(cuadros, { duration: 1600, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' }).finished;
+    }
     try {
+      await primerCuadro; video.currentTime = 0; video.hidden = false;
       await video.play();
       await new Promise((ok) => video.addEventListener('ended', ok, { once: true }));
     } catch { /* si el navegador no deja reproducir, pasa directo */ }
     await listo; await cargarEn(cuadro, t.foto);
+    cuadro.getAnimations().forEach(a => a.cancel());
     video.hidden = true; video.removeAttribute('src'); video.load();
   } else if (animar && !reduce && desde) {
     // sin video todavía: acercamiento a la tribuna y fundido a su foto

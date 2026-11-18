@@ -44,3 +44,11 @@ y fundido) → hover/clic en bloque → mapa de sillas → boleta con la vista �
   calce (la de la Occidental Norte necesitó 3 intentos: sin la foto v1 como referencia, que la IA copiaba).
 - Medios: `boletas/media/` (fotos a 1920 px, video a 720p con `herramientas/video-web.swift`).
 - URL guarda el estado: `#oriental/OR-105/6-10/vip`.
+
+## Bajadas en video (una por tribuna)
+Ruta = foto de inicio → toma intermedia (3D → foto IA) → foto final de la tribuna; 2 clips Kling 3.0 std de 5 s
+pegados con `herramientas/bajadas.sh nombre url1 url2` (baja, une, comprime a 720p y saca cuadros para revisar).
+Si la tribuna no queda arriba en la vista cenital, la página GIRA la foto cenital en CSS antes del video
+(`giro` en `boletas/datos.js`) y el primer cuadro del video es esa misma foto girada, hecha con
+`swift herramientas/girar.swift fotos-ia/k0-este-v1.png tomas/inicio/inicio-X.jpg grados escala Ox Oy`.
+Norte: 90°, ×1,95, origen (0,47; 0,5). Occidentales: 180°, ×1. Oriental: sin giro.
