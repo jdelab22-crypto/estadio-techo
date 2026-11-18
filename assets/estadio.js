@@ -391,7 +391,7 @@ function construirSegmento(seg) {
       for (let k = 0; k < n; k++) {
         const s = s0 + sobra / 2 + 0.25 + k * 0.5;
         sillas.push({
-          seg: seg.id, tribuna: seg.tribuna, bandeja: f.bandeja, bloque: ib + 1, fila: f.fila, numero: k + 1,
+          seg: seg.id, tribuna: seg.tribuna, bandeja: f.bandeja, bloque: ib + (seg.bloqueInicio ?? 1), fila: f.fila, numero: k + 1,
           s, filaSeg: pf.filas.indexOf(f), filasSeg: pf.filas.length, L: mf.L,
           pos: mf.enMundo(s, f.d + f.huella * 0.42, f.h), q: qSeg,
         });
@@ -476,7 +476,7 @@ function construirSegmento(seg) {
         piezasBaranda.push(cable);
       }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-      const lona = new THREE.Mesh(g, M.lona); lona.castShadow = lona.receiveShadow = true; escena.add(lona);
+      const lona = new THREE.Mesh(g, M.lona); lona.castShadow = lona.receiveShadow = true; lona.userData.techo = true; escena.add(lona);
     }
     // muro trasero: cierra la tribuna desde el piso hasta la lámina
     caja(piezasConcreto, mf.enMundo(mf.L / 2, d1 + 0.15, t.fondo / 2), new THREE.Vector3(mf.L, t.fondo, 0.3), qSeg);
@@ -497,7 +497,7 @@ unir(piezasEscalera, M.escalera, false);
 unir(piezasBaranda, M.acero);
 unir(piezasAmarillo, M.amarillo);
 unir(piezasMalla, M.malla, false);
-unir(piezasTecho, M.concretoTecho);
+unir(piezasTecho, M.concretoTecho).userData.techo = true;
 unir(piezasPalco, new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.8 }));
 
 // anexos
@@ -766,18 +766,73 @@ if (h.startsWith('silla-')) { ir('general', true); sentarse(+h.slice(6)); }
 else ir(CAMARAS[h] ? h : 'general', true);
 
 // guardar una toma en alta (servidor local: herramientas/servidor.py la escribe en tomas/)
-async function guardar(nombre, w = 2400, h = 1350) {
-  const pw = lienzo.style.width, ph = lienzo.style.height, pr = renderer.getPixelRatio();
-  const aspecto = camara.aspect; vuelo = null; controles.update();
+async function capturar(w, h) {
+  const pr = renderer.getPixelRatio();
+  vuelo = null; controles.update();
   renderer.setPixelRatio(1); renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix();
   document.body.classList.add('limpio'); render();
   const blob = await new Promise(r => lienzo.toBlob(r, 'image/png'));
-  renderer.setPixelRatio(pr); ajustar(); camara.aspect = aspecto; ajustar(); document.body.classList.remove('limpio');
-  const res = await fetch('/guardar?nombre=' + encodeURIComponent(nombre), { method: 'POST', body: blob });
-  return res.status;
+  renderer.setPixelRatio(pr); ajustar(); document.body.classList.remove('limpio');
+  return blob;
+}
+const subir = (nombre, cuerpo, tipo = '') => fetch('/guardar?nombre=' + encodeURIComponent(nombre) + (tipo ? '&tipo=' + tipo : ''), { method: 'POST', body: cuerpo }).then(r => r.status);
+async function guardar(nombre, w = 2400, h = 1350) { return subir(nombre, await capturar(w, h)); }
+
+// Máscara (paso 4 del método): misma cámara, cada zona en un color plano y todo lo demás en negro.
+// nivel 'tribuna' = una zona por tribuna; 'bloque' = una por bloque (solo de `tribuna`, si se da).
+// Las sillas se ensanchan para tapar los pasillos (tribuna) o solo las filas (bloque).
+const colorZona = (k) => new THREE.Color().setHSL((k * 0.6180339887) % 1, 0.95, 0.5);
+async function guardarMascara(nombre, { nivel = 'tribuna', tribuna = null, w = 1344, h = 756 } = {}) {
+  const zonas = [], indice = new Map(), col = new THREE.Color(), m = new THREE.Matrix4();
+  const esc = nivel === 'tribuna' ? new THREE.Vector3(6, 1.7, 2.4) : new THREE.Vector3(1.15, 1.5, 2.1);
+  const clave = (s) => nivel === 'tribuna' ? s.tribuna : nombreBloque(s);
+  sillas.forEach((s, i) => {
+    let k = -1;
+    if (!tribuna || s.tribuna === tribuna) {
+      const c = clave(s);
+      if (!indice.has(c)) { indice.set(c, zonas.length); zonas.push({ id: c, tribuna: s.tribuna, bandeja: s.bandeja, bloque: s.bloque, sillas: 0 }); }
+      k = indice.get(c); zonas[k].sillas++;
+    }
+    malla.setColorAt(i, k < 0 ? col.set(0x000000) : colorZona(k));
+    malla.setMatrixAt(i, m.compose(s.pos, s.q, esc));
+  });
+  malla.instanceColor.needsUpdate = malla.instanceMatrix.needsUpdate = true;
+  const negro = new THREE.MeshBasicMaterial({ color: 0x000000 }), guardado = [];
+  const matMascara = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  escena.traverse(o => {
+    if (!o.isMesh || o === cielo) return;
+    guardado.push([o, o.material, o.visible]);
+    if (o === malla) o.material = matMascara;
+    else if (nivel === 'tribuna' && o.userData.techo) o.visible = false; // desde arriba la zona es toda la tribuna, con techo
+    else if ([].concat(o.material).some(x => x.transparent)) o.visible = false;
+    else o.material = negro;
+  });
+  const prev = { fondo: escena.background, niebla: escena.fog, tono: renderer.toneMapping, sombras: renderer.shadowMap.enabled };
+  cielo.visible = false; escena.background = new THREE.Color(0x000000); escena.fog = null; renderer.toneMapping = THREE.NoToneMapping;
+  const blob = await capturar(w, h);
+  guardado.forEach(([o, mat, vis]) => { o.material = mat; o.visible = vis; });
+  cielo.visible = true; escena.background = prev.fondo; escena.fog = prev.niebla; renderer.toneMapping = prev.tono;
+  const uno = new THREE.Vector3(1, 1, 1);
+  sillas.forEach((s, i) => { malla.setColorAt(i, col.fromArray(colorBase, i * 3)); malla.setMatrixAt(i, m.compose(s.pos, s.q, uno)); });
+  malla.instanceColor.needsUpdate = malla.instanceMatrix.needsUpdate = true;
+  zonas.forEach((z, k) => (z.color = '#' + colorZona(k).getHexString()));
+  await subir(nombre, blob);
+  await subir(nombre, JSON.stringify(zonas), 'json');
+  return zonas.length;
+}
+
+// mapa de sillas por bloque: filas con cuántas sillas tiene cada una (para el selector de la página)
+function mapaSillas() {
+  const bloques = {};
+  for (const s of sillas) {
+    const id = nombreBloque(s);
+    const b = (bloques[id] ??= { id, tribuna: s.tribuna, bandeja: s.bandeja, bloque: s.bloque, filas: {} });
+    b.filas[s.fila] = Math.max(b.filas[s.fila] || 0, s.numero);
+  }
+  return Object.values(bloques).map(b => ({ ...b, filas: Object.keys(b.filas).sort((x, y) => x - y).map(f => b.filas[f]) }));
 }
 
 // para inspeccionar desde la consola o con Playwright
-window.techo = { THREE, escena, camara, controles, sillas, ir, sentarse, estado, render, guardar, volar: (p, m, f) => volar(P(...p), P(...m), f, true),
+window.techo = { THREE, escena, camara, controles, sillas, ir, sentarse, estado, render, guardar, guardarMascara, mapaSillas, subir, volar: (p, m, f) => volar(P(...p), P(...m), f, true),
   verSilla: (i, f = 55) => { const v = ojoSilla(i); volar(v.ojo, v.objetivo, f, true); },
   verPalco: (k, f = 62) => { const v = vistaPalco(k); volar(v.ojo, v.objetivo, f, true); } };

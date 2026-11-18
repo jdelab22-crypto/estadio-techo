@@ -22,7 +22,7 @@ export const SEGMENTOS = [
     barandaAtras: true,
   },
   {
-    id: 'esquina-ne', tribuna: 'norte', A: [37.6, 61.5], B: [43, 56.2], base: 1.0,
+    id: 'esquina-ne', tribuna: 'norte', A: [37.6, 61.5], B: [43, 56.2], base: 1.0, bloqueInicio: 8,
     bandejas: [{ filas: 13, huella: 0.8, contra: 0.4 }],
     pasillos: [],
     barandaAtras: true,

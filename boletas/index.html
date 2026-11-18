@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escoge tu silla · Metropolitano de Techo</title>
+<meta name="description" content="Escoge tribuna, bloque y silla en el Estadio Metropolitano de Techo y mira la cancha desde tu puesto antes de comprar.">
+<link rel="icon" href="media/escudo.png">
+<link rel="preload" href="media/vista-general.jpg" as="image">
+<link rel="stylesheet" href="boletas.css">
+</head>
+<body>
+<header class="cabecera">
+  <a class="marca" href="#" data-ir="general" aria-label="Volver a todas las tribunas">
+    <img src="media/escudo.png" alt="" width="36" height="36">
+    <span>Boletería</span>
+  </a>
+  <ol class="pasos" aria-label="Pasos">
+    <li data-paso="1" aria-current="step"><b>01</b> Tribuna</li>
+    <li data-paso="2"><b>02</b> Bloque</li>
+    <li data-paso="3"><b>03</b> Silla</li>
+    <li data-paso="4"><b>04</b> Boleta</li>
+  </ol>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="ante" data-ante>01 — Metropolitano de Techo</p>
+    <h1 data-titulo>Escoge tu silla, mira la cancha</h1>
+    <p class="bajada" data-bajada>Pasa por encima de una tribuna para ver su precio. Haz clic y bajas hasta ella.</p>
+  </section>
+
+  <div class="escenario" data-escenario>
+    <img class="cuadro" data-cuadro src="media/vista-general.jpg" alt="El Metropolitano de Techo visto desde arriba: Oriental arriba, Norte a la izquierda, las dos occidentales techadas abajo." width="1920" height="1080">
+    <img class="cuadro cuadro-siguiente" data-siguiente alt="" hidden>
+    <video class="cuadro" data-video muted playsinline preload="none" hidden></video>
+    <canvas class="capa capa-agotado" data-agotado width="1344" height="756" aria-hidden="true"></canvas>
+    <canvas class="capa capa-zona" data-zona width="1344" height="756" aria-hidden="true"></canvas>
+    <button class="volver" data-volver hidden>← Todas las tribunas</button>
+    <div class="etiqueta" data-etiqueta hidden>
+      <p class="micro" data-e-ante></p>
+      <p class="etiqueta-nombre" data-e-nombre></p>
+      <p class="etiqueta-dato"><span data-e-precio></span><span data-e-libres></span></p>
+    </div>
+
+    <aside class="sillas" data-panel hidden aria-labelledby="titulo-bloque">
+      <div class="sillas-cabeza">
+        <div>
+          <p class="micro" data-p-ante></p>
+          <h2 id="titulo-bloque" data-p-titulo></h2>
+        </div>
+        <button class="cerrar" data-cerrar-panel aria-label="Cerrar bloque">✕</button>
+      </div>
+      <p class="sillas-estado" data-p-estado aria-live="polite">Escoge una silla libre.</p>
+      <div class="rejilla" data-rejilla role="group" aria-label="Sillas del bloque"></div>
+      <p class="cancha-rotulo">Cancha</p>
+      <ul class="leyenda">
+        <li><i class="libre"></i>Libre</li><li><i class="vendida"></i>Vendida</li><li><i class="tuya"></i>Tu silla</li>
+      </ul>
+    </aside>
+  </div>
+
+  <nav class="lista" aria-label="Tribunas" data-lista></nav>
+  <p class="nota">Precios de ejemplo. Las fotos salen del estadio modelado en 3D y llevadas a foto con IA, con la cámara en el mismo punto.</p>
+</main>
+
+<div class="velo" data-velo hidden></div>
+<section class="boleta" data-boleta hidden role="dialog" aria-modal="true" aria-labelledby="boleta-titulo">
+  <figure class="boleta-vista">
+    <img data-b-foto alt="">
+    <figcaption class="chip"><i></i><span data-b-chip>Tu vista</span></figcaption>
+  </figure>
+  <div class="boleta-datos">
+    <p class="micro" data-b-ante></p>
+    <h2 id="boleta-titulo" data-b-titulo></h2>
+    <dl class="boleta-campos" data-b-campos></dl>
+    <div class="boleta-acciones" data-b-acciones></div>
+  </div>
+  <div class="boleta-talon">
+    <p class="micro">COP</p>
+    <div class="barras" aria-hidden="true"></div>
+    <p class="boleta-precio" data-b-precio></p>
+  </div>
+  <button class="cerrar boleta-cerrar" data-cerrar-boleta aria-label="Cerrar boleta">✕</button>
+</section>
+
+<noscript><p class="sin-js">Para escoger silla necesitas JavaScript. También puedes comprar en boletas.interbogota.com.</p></noscript>
+<script type="module" src="boletas.js"></script>
+</body>
+</html>

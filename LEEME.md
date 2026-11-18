@@ -33,3 +33,14 @@ sillas sigue siendo estimado hasta tener el mapa de la boletería.
 3. Prompt: "Turn the first image, a 3D render, into an ultra-photorealistic … same camera, same framing,
    same geometry … Change only materials and light, add nothing … Warm late afternoon … No CGI look, no people".
 Resultados en `fotos-ia/` (v1 del 18-nov: arriba, oriental, silla ON-203 fila 4 silla 10).
+
+## La página: `boletas/` (escoger silla)
+Abrir http://localhost:3390/boletas/ (misma vista previa). Flujo: vista cenital → hover tiñe la tribuna
+(máscara + `mix-blend-mode: color`) → clic baja (Oriental con el video de Kling; las demás con acercamiento
+y fundido) → hover/clic en bloque → mapa de sillas → boleta con la vista → mejora a palco VIP.
+- Precios, puertas y textos: `boletas/datos.js` (precios DE EJEMPLO; textos de interbogota.com/boletas).
+- Zonas: `boletas/zonas/mascara-*.png|json` salen del 3D con `techo.guardarMascara()` usando la MISMA cámara
+  de la foto IA; `mapa-sillas.json` con `techo.mapaSillas()`. Si se rehace una foto, revisar que la máscara
+  calce (la de la Occidental Norte necesitó 3 intentos: sin la foto v1 como referencia, que la IA copiaba).
+- Medios: `boletas/media/` (fotos a 1920 px, video a 720p con `herramientas/video-web.swift`).
+- URL guarda el estado: `#oriental/OR-105/6-10/vip`.
