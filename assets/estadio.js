@@ -288,7 +288,7 @@ const silla = (() => {
 })();
 
 const sillas = []; // {seg, tribuna, bandeja, bloque, fila, numero, pos, normal}
-const piezasConcreto = [], piezasEscalera = [], piezasBaranda = [], piezasAmarillo = [], piezasMalla = [], piezasTecho = [];
+const piezasConcreto = [], piezasEscalera = [], piezasBaranda = [], piezasAmarillo = [], piezasMalla = [], piezasTecho = [], piezasPalco = [];
 
 function marco(seg) {
   const A = new THREE.Vector2(...seg.A), B = new THREE.Vector2(...seg.B);
@@ -416,8 +416,22 @@ function construirSegmento(seg) {
     [piso, losa].forEach(o => { o.castShadow = o.receiveShadow = true; escena.add(o); });
     escena.add(vidrio);
     for (let i = 0; i <= cajas; i++) {
-      caja(piezasBaranda, mf.enMundo(0.5 + (mf.L - 1) * i / cajas, dAtras + 0.25, h0 + alto / 2), new THREE.Vector3(0.12, alto - 0.3, 0.12), qSeg);
+      const sDiv = 0.5 + (mf.L - 1) * i / cajas;
+      caja(piezasBaranda, mf.enMundo(sDiv, dAtras + 0.25, h0 + alto / 2), new THREE.Vector3(0.12, alto - 0.3, 0.12), qSeg);
+      // división entre palcos y muro del fondo
+      caja(piezasPalco, mf.enMundo(sDiv, dAtras + fondo / 2 + 0.3, h0 + 0.3 + (alto - 0.6) / 2), new THREE.Vector3(0.12, alto - 0.6, fondo - 0.8), qSeg);
     }
+    caja(piezasPalco, mf.enMundo(mf.L / 2, dAtras + fondo - 0.1, h0 + alto / 2), new THREE.Vector3(mf.L, alto, 0.2), qSeg);
+    // dos filas de sillas de cuero por palco, mirando a la cancha
+    const ancho = (mf.L - 1) / cajas, sillasPalco = [];
+    for (let k = 0; k < cajas; k++) for (let fila = 0; fila < 2; fila++) for (let j = 0; j < 4; j++) {
+      const sx = 0.5 + ancho * k + ancho * (j + 0.5) / 4;
+      sillasPalco.push(mf.enMundo(sx, dAtras + 1.4 + fila * 1.3, h0 + 0.3 + fila * 0.35));
+    }
+    const geoSillon = new THREE.BoxGeometry(0.62, 0.9, 0.62); geoSillon.translate(0, 0.45, 0);
+    const sillones = new THREE.InstancedMesh(geoSillon, new THREE.MeshStandardMaterial({ color: 0x1b1b1d, roughness: 0.55 }), sillasPalco.length);
+    sillasPalco.forEach((pp, k) => sillones.setMatrixAt(k, new THREE.Matrix4().compose(pp, qSeg, new THREE.Vector3(1, 1, 1))));
+    sillones.castShadow = true; escena.add(sillones);
     estado.palcos = cajas;
     palcoInfo = { mf, dAtras, h0, alto, cajas, L: mf.L };
   }
@@ -484,6 +498,7 @@ unir(piezasBaranda, M.acero);
 unir(piezasAmarillo, M.amarillo);
 unir(piezasMalla, M.malla, false);
 unir(piezasTecho, M.concretoTecho);
+unir(piezasPalco, new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.8 }));
 
 // anexos
 for (const a of ANEXOS) {
@@ -682,11 +697,19 @@ lienzo.addEventListener('click', (e) => {
   if (resaltada < 0) return;
   sentarse(resaltada);
 });
-function sentarse(i) {
+function ojoSilla(i) {
   const s = sillas[i];
   const atras = new THREE.Vector3(0, 0, 1).applyQuaternion(s.q); // hacia atrás de la silla
   const ojo = s.pos.clone().add(new THREE.Vector3(0, 1.18, 0)).addScaledVector(atras, 0.05);
-  const objetivo = new THREE.Vector3(0, 0, 0).lerp(ojo.clone().setY(0), 0.18);
+  return { ojo, objetivo: new THREE.Vector3(0, 0, 0).lerp(ojo.clone().setY(0), 0.18) };
+}
+function vistaPalco(k) {
+  const { mf, dAtras, h0, cajas, L } = palcoInfo; k ??= Math.floor(cajas / 2);
+  const s = 0.5 + (L - 1) * (k + 0.5) / cajas;
+  return { ojo: mf.enMundo(s, dAtras + 4.6, h0 + 2.05), objetivo: mf.enMundo(s - 6, -45, 0) };
+}
+function sentarse(i) {
+  const s = sillas[i], { ojo, objetivo } = ojoSilla(i);
   volar(ojo, objetivo, 55);
   document.getElementById('silla-actual').textContent = `${TRIBUNAS[s.tribuna].nombre} · Bloque ${nombreBloque(s)} · Fila ${s.fila} · Silla ${s.numero}`;
   document.getElementById('aviso-silla').hidden = false;
@@ -755,4 +778,6 @@ async function guardar(nombre, w = 2400, h = 1350) {
 }
 
 // para inspeccionar desde la consola o con Playwright
-window.techo = { THREE, escena, camara, controles, sillas, ir, sentarse, estado, render, guardar, volar: (p, m, f) => volar(P(...p), P(...m), f, true) };
+window.techo = { THREE, escena, camara, controles, sillas, ir, sentarse, estado, render, guardar, volar: (p, m, f) => volar(P(...p), P(...m), f, true),
+  verSilla: (i, f = 55) => { const v = ojoSilla(i); volar(v.ojo, v.objetivo, f, true); },
+  verPalco: (k, f = 62) => { const v = vistaPalco(k); volar(v.ojo, v.objetivo, f, true); } };
