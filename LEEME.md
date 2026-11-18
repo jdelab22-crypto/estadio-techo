@@ -4,7 +4,7 @@ Paso 1 del "método del estadio" (PDF de Omnya Lab): el estadio escrito en códi
 para después sacar de él cada toma (fotos con IA, clips y máscaras) y la página de escoger silla.
 
 ## Ver
-Vista previa: configuración `estadio-techo` (puerto 3390) en `~/Desktop/cumple-inter/.claude/launch.json`.
+Modelo 3D: `modelo.html` (la raíz redirige a `boletas/`). Vista previa: configuración `estadio-techo` (puerto 3390) en `~/Desktop/cumple-inter/.claude/launch.json`.
 Cámaras por URL: `#arriba`, `#general`, `#norte`, `#oriental`, `#occidental-norte`, `#occidental-sur`, `#silla-<índice>`.
 En la consola: `techo.ir('norte')`, `techo.sentarse(i)`, `techo.sillas` (cada silla: tribuna, bandeja, bloque, fila, número).
 
