@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { crearProyeccion } from './proyeccion.js';
+let proy = null; // fotos de Higgsfield proyectadas sobre el 3D (ver proyeccion.js)
 import {
   CANCHA, PASTO, FRANJA, SEGMENTOS, TRIBUNAS, TORRES, ALTO_TORRE, BANCOS, ANEXOS, GIRO_NORTE,
   SIN_ARBOLES, CAMARAS,
@@ -213,6 +215,7 @@ function sembrarArboles(img) {
     s.set(1, alto - radio * 0.6, 1); m.compose(P(x, y, 0), q, s); troncos.setMatrixAt(k, m);
   });
   copas.castShadow = copas.receiveShadow = true; troncos.castShadow = true;
+  if (proy) { proy.parchear([mCopa, mTronco]); requestAnimationFrame(() => proy.profundidades()); }
   escena.add(copas, troncos);
   estado.arboles = puntos.length; pintarEstado();
 }
@@ -675,6 +678,7 @@ function resaltar(i) {
   if (resaltada >= 0) malla.setColorAt(resaltada, new THREE.Color().fromArray(colorBase, resaltada * 3));
   resaltada = i;
   if (i >= 0) malla.setColorAt(i, new THREE.Color('#ff7a1a'));
+  if (proy) proy.U.uResaltada.value = i;
   malla.instanceColor.needsUpdate = true;
 }
 lienzo.addEventListener('pointermove', (e) => { ultimoEvento = e; if (!pendiente) { pendiente = true; requestAnimationFrame(revisarPuntero); } }, { passive: true });
@@ -726,6 +730,7 @@ function sentarse(i) {
 document.querySelectorAll('[data-cam]').forEach(b => b.addEventListener('click', () => { ir(b.dataset.cam); document.getElementById('aviso-silla').hidden = true; }));
 document.querySelectorAll('[data-esquema]').forEach(b => b.addEventListener('click', () => {
   esquema = b.dataset.esquema; pintarSillas();
+  if (proy) proy.U.uSillasProy.value = esquema === 'real' ? 1 : 0;
   document.querySelectorAll('[data-esquema]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
 }));
 document.getElementById('foto').addEventListener('click', () => {
@@ -750,7 +755,16 @@ function ajustar() {
 addEventListener('resize', ajustar);
 ajustar();
 
-function render() { renderer.render(escena, camara); }
+// las fotos de Higgsfield se pegan sobre el 3D desde la cámara con que se hizo cada una
+malla.userData.sillas = true;
+proy = crearProyeccion({ renderer, escena, P });
+proy.parchearEscena();
+proy.profundidades();
+document.querySelectorAll('[data-vista]').forEach(b => b.addEventListener('click', () => {
+  proy.U.uFuerza.value = b.dataset.vista === 'foto' ? 1 : 0;
+  document.querySelectorAll('[data-vista]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+}));
+function render() { proy.actualizar(camara); renderer.render(escena, camara); }
 renderer.setAnimationLoop((t) => {
   if (vuelo) {
     const k = Math.min(1, (t - vuelo.t0) / vuelo.dur), e = suave(k);
@@ -768,14 +782,16 @@ renderer.setAnimationLoop((t) => {
 // arranque: cámara desde la URL (#arriba, #norte, #silla-1234…)
 const h = location.hash.slice(1);
 if (h.startsWith('silla-')) { ir('general', true); sentarse(+h.slice(6)); }
-else ir(CAMARAS[h] ? h : 'general', true);
+else ir(CAMARAS[h] ? h : 'arriba', true);
 
 // guardar una toma en alta (servidor local: herramientas/servidor.py la escribe en tomas/)
 async function capturar(w, h) {
   const pr = renderer.getPixelRatio();
   vuelo = null; controles.update();
   renderer.setPixelRatio(1); renderer.setSize(w, h, false); camara.aspect = w / h; camara.updateProjectionMatrix();
+  const fuerza = proy.U.uFuerza.value; proy.U.uFuerza.value = 0;
   document.body.classList.add('limpio'); render();
+  proy.U.uFuerza.value = fuerza;
   const blob = await new Promise(r => lienzo.toBlob(r, 'image/png'));
   renderer.setPixelRatio(pr); ajustar(); document.body.classList.remove('limpio');
   return blob;
@@ -847,6 +863,6 @@ function mapaSillas() {
 }
 
 // para inspeccionar desde la consola o con Playwright
-window.techo = { THREE, escena, camara, controles, sillas, ir, sentarse, estado, render, guardar, guardarMascara, mapaSillas, subir, volar: (p, m, f) => volar(P(...p), P(...m), f, true),
+window.techo = { THREE, escena, camara, controles, sillas, get proy() { return proy; }, ir, sentarse, estado, render, guardar, guardarMascara, mapaSillas, subir, volar: (p, m, f) => volar(P(...p), P(...m), f, true),
   verSilla: (i, f = 55) => { const v = ojoSilla(i); volar(v.ojo, v.objetivo, f, true); },
   verPalco: (k, f = 62) => { const v = vistaPalco(k); volar(v.ojo, v.objetivo, f, true); } };

@@ -95,10 +95,10 @@ export const SIN_ARBOLES = [
 
 // Cámaras de la escena: posición y mira en coordenadas locales [x, y, altura].
 export const CAMARAS = {
-  arriba:            { nombre: 'Desde arriba',      pos: [-18, -1, 430], mira: [-18, 0, 0], fov: 32 },
-  general:           { nombre: 'Vista general',     pos: [125, -165, 115], mira: [-12, 2, 4], fov: 32 },
+  arriba:            { nombre: 'Desde arriba',      pos: [-22, 0, 430], mira: [-20, 0, 0], fov: 32 },
+  general:           { nombre: 'Vista general',     pos: [-60, 2, 150], mira: [40, 3, 0], fov: 38 },
   'norte':           { nombre: 'Norte',             pos: [0, -2, 46], mira: [0, 70, 4], fov: 40 },
-  'oriental':        { nombre: 'Oriental',          pos: [-22, 0, 40], mira: [50, 2, 3], fov: 40 },
+  'oriental':        { nombre: 'Oriental',          pos: [-30, 2, 46], mira: [46, 4, 4], fov: 42 },
   'occidental-norte':{ nombre: 'Occidental Norte',  pos: [24, 22, 58], mira: [-62, 42, 6], fov: 40 },
   'occidental-sur':  { nombre: 'Occidental Sur',    pos: [24, -40, 54], mira: [-60, -42, 6], fov: 40 },
 };

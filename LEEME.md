@@ -52,3 +52,9 @@ Si la tribuna no queda arriba en la vista cenital, la página GIRA la foto cenit
 (`giro` en `boletas/datos.js`) y el primer cuadro del video es esa misma foto girada, hecha con
 `swift herramientas/girar.swift fotos-ia/k0-este-v1.png tomas/inicio/inicio-X.jpg grados escala Ox Oy`.
 Norte: 90°, ×1,95, origen (0,47; 0,5). Occidentales: 180°, ×1. Oriental: sin giro.
+
+## Modelo 3D con fotos (raíz `index.html`)
+`assets/proyeccion.js` proyecta las fotos de Higgsfield sobre el 3D desde la cámara con que se hizo cada una
+(lista PROYECTORES), con prueba de profundidad. Cada cuadro mezcla los 2 proyectores más alineados con la cámara
+y la foto cenital como fondo. En una cámara de foto se ve la foto exacta. Botón "Vista: Foto / Modelo".
+Las capturas `techo.guardar()` salen sin fotos (son las que se mandan a Higgsfield). La boletería sigue en `boletas/`.

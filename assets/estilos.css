@@ -55,3 +55,4 @@ button:focus-visible { outline: 3px solid var(--dorado); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 1ms !important; } }
 .limpio .cabecera, .limpio .panel, .limpio .camaras, .limpio .aviso-silla, .limpio .ficha { visibility: hidden; }
+.enlace { display: block; text-align: center; font: 600 .75rem/1 var(--texto); letter-spacing: .12em; text-transform: uppercase; color: var(--negro); background: var(--dorado); border: 1px solid var(--dorado); padding: 11px 14px; text-decoration: none; }
